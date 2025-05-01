@@ -1,36 +1,34 @@
-# seed_db.py
 import os
 import django
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'buildnowapi.settings')  # Changed to bnpl.settings
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'buildnowapi.settings')
 django.setup()
 
 from users.models import User
-from payments.models import PaymentPlan, Installment  # Changed from payments to plans
-from rest_framework.authtoken.models import Token
+from payments.models import PaymentPlan, Installment
 
 
 def create_users():
     # Create merchants
     admin = User.objects.create_superuser(
         email='admin@example.com',
-        role='merchant',  # Must be one of the ROLE_CHOICES
+        role='merchant',
         password='admin123'
     )
 
     merchant1 = User.objects.create_user(
         email='merchant1@example.com',
         password='test123',
-        role='merchant'  # Changed to string literal
+        role='merchant'  
     )
 
     merchant2 = User.objects.create_user(
         email='merchant2@example.com',
         password='test123',
-        role='merchant'  # Changed to string literal
+        role='merchant'  
     )
 
     # Create regular users
@@ -38,7 +36,7 @@ def create_users():
         User.objects.create_user(
             email=f'user{i}@example.com',
             password='test123',
-            role='user'  # Changed to string literal
+            role='user'  
         ) for i in range(1, 4)
     ]
 
@@ -84,23 +82,11 @@ def create_plans_and_installments(merchants, users):
                 due_date = plan.start_date + relativedelta(months=i)
 
                 Installment.objects.create(
-                    payment_plan=plan,  # Correct FK field name
+                    payment_plan=plan,
                     amount=amount,
                     due_date=due_date,
                     status='paid' if i < 2 else 'pending'  # Lowercase status
                 )
-
-def generate_tokens():
-    # Get all users
-    users = User.objects.all()
-
-    # Create tokens for users without one
-    for user in users:
-        Token.objects.get_or_create(user=user)
-
-    # Print tokens
-    for user in users:
-        print(f"Email: {user.email} | Token: {user.auth_token.key}")
 
 def main():
     print("Deleting old data...")
@@ -114,10 +100,9 @@ def main():
 
     print("Seed completed successfully!")
     print(f"Created {User.objects.count()} users")
-    print(f"Created {PaymentPlan.objects.count()} plans")  # Correct model name
+    print(f"Created {PaymentPlan.objects.count()} plans")
     print(f"Created {Installment.objects.count()} installments")
 
-    generate_tokens()
 
 
 if __name__ == '__main__':

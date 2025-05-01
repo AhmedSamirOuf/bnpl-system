@@ -41,6 +41,13 @@ REST_FRAMEWORK = {
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = '*'
+CORS_ALLOW_METHODS = '*'
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -52,11 +59,13 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
+    "drf_yasg",
     "users",
     "payments",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

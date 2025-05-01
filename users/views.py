@@ -1,22 +1,32 @@
-from rest_framework import generics, permissions
+from rest_framework import status
 from rest_framework.response import Response
-from .models import User
-from .serializers import UserSerializer
+from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .serializers import (
+    CustomTokenObtainPairSerializer,
+    UserRegistrationSerializer
+)
+from django.contrib.auth import get_user_model
 
-class UserRegistrationView(generics.CreateAPIView):
-    serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
+User = get_user_model()
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            {
-                'user': serializer.data,
-                'message': 'User registered successfully. Please login to get your token.'
-            },
-            status=201,
-            headers=headers
-        )
+class UserRegistrationView(APIView):
+    def post(self, request):
+        serializer = UserRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({
+                'message': 'User registered successfully',
+                'user_id': user.id,
+                'email': user.email
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            response.data['message'] = 'Login successful'
+        return response

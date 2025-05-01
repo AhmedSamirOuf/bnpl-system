@@ -50,22 +50,28 @@ class PaymentPlanViewSet(viewsets.ModelViewSet):
 
         return Response(response_data)
 
+
 class InstallmentViewSet(viewsets.GenericViewSet):
     queryset = Installment.objects.all()
     serializer_class = InstallmentSerializer
 
     def get_permissions(self):
         if self.action == 'pay':
-            self.permission_classes = [IsAuthenticated,IsPlanUser]
+            self.permission_classes = [IsAuthenticated, IsPlanUser]
         return super().get_permissions()
 
-
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['PATCH'], url_path='pay')
     def pay(self, request, pk=None):
         installment = self.get_object()
-        if installment.status == 'paid':
-            return Response({'error': 'Already paid'}, status=status.HTTP_400_BAD_REQUEST)
 
-        installment.status = 'paid'
-        installment.save()
+        if installment.status == 'paid':
+            return Response(
+                {'error': 'Already paid'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = self.get_serializer(installment, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(status='paid', paid_at=serializer.validated_data.get('paid_at'))
+
         return Response({'status': 'success'})

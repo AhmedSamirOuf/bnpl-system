@@ -9,9 +9,11 @@ from .models import PaymentPlan, Installment
 class InstallmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Installment
-        fields = ['id', 'amount', 'due_date', 'status', 'paid_at']
-        read_only_fields = ['id', 'amount', 'due_date']
-
+        fields = '__all__'
+        read_only_fields = ('status',)
+        extra_kwargs = {
+            'paid_at': {'required': True}
+        }
 
 class PlanSerializer(serializers.ModelSerializer):
     installments = InstallmentSerializer(many=True, read_only=True)
